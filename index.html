@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ここちよナンプレ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#eef3f1; --surface:#ffffff; --surface2:#e4ece9; --text:#22313a; --muted:#6a7b80;
+  --line:#d3dedb; --line-strong:#3c4f57; --accent:#2f8f83; --accent-ink:#ffffff; --accent-soft:#d5ece7;
+  --given:#22313a; --user:#2f6fb0; --wrong:#d1453b; --wrong-bg:#fbe5e2; --conflict:#fdf1ef;
+  --hl:#eef6f4; --same:#d5ece7; --sel:#b7e0d8; --sel-faint:#f6f9f8; --gold:#e3a21a;
+  --overlay:rgba(20,32,38,.48); --veil:rgba(255,255,255,.7); --shadow:0 12px 32px rgba(20,40,45,.16);
+  color-scheme:light;
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#11181b; --surface:#1a2428; --surface2:#243035; --text:#e5eeec; --muted:#8fa2a6;
+    --line:#2b393e; --line-strong:#a3b8bc; --accent:#4fbcae; --accent-ink:#06201c; --accent-soft:#1d3a36;
+    --given:#e5eeec; --user:#7fb6ee; --wrong:#f07a70; --wrong-bg:#3a1f1d; --conflict:#2c2120;
+    --hl:#1f2c30; --same:#21403b; --sel:#2c5a52; --sel-faint:#1c272b; --gold:#f0bc4a;
+    --overlay:rgba(0,0,0,.62); --veil:rgba(17,24,27,.72); --shadow:0 12px 32px rgba(0,0,0,.5);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#11181b; --surface:#1a2428; --surface2:#243035; --text:#e5eeec; --muted:#8fa2a6;
+  --line:#2b393e; --line-strong:#a3b8bc; --accent:#4fbcae; --accent-ink:#06201c; --accent-soft:#1d3a36;
+  --given:#e5eeec; --user:#7fb6ee; --wrong:#f07a70; --wrong-bg:#3a1f1d; --conflict:#2c2120;
+  --hl:#1f2c30; --same:#21403b; --sel:#2c5a52; --sel-faint:#1c272b; --gold:#f0bc4a;
+  --overlay:rgba(0,0,0,.62); --veil:rgba(17,24,27,.72); --shadow:0 12px 32px rgba(0,0,0,.5);
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;height:100%;background:var(--bg);color:var(--text);
+  font-family:"M PLUS Rounded 1c","Hiragino Maru Gothic ProN","Hiragino Sans","Noto Sans JP","Yu Gothic",system-ui,sans-serif;
+  -webkit-tap-highlight-color:transparent;overscroll-behavior:none;user-select:none;-webkit-user-select:none}
+button{font:inherit;touch-action:manipulation;cursor:pointer}
+button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+#app{height:100%;max-width:520px;margin:0 auto;position:relative}
+.screen{display:none;height:100%;flex-direction:column;padding:10px 14px 14px;overflow:auto}
+.screen.active{display:flex}
+
+/* title */
+.title-wrap{margin:auto 0;text-align:center;padding:24px 8px}
+.logo{display:inline-grid;grid-template-columns:repeat(3,38px);grid-template-rows:repeat(3,38px);gap:3px;padding:6px;border-radius:16px;background:var(--surface);box-shadow:var(--shadow);margin-bottom:22px}
+.logo span{display:flex;align-items:center;justify-content:center;border-radius:8px;background:var(--surface2);font-weight:800;font-size:18px;color:var(--accent)}
+.logo span:nth-child(odd){background:var(--accent-soft)}
+.title-wrap h1{font-size:30px;font-weight:800;margin:0 0 10px;letter-spacing:.02em}
+.catch{color:var(--muted);line-height:1.8;margin:0 0 22px;font-size:15px}
+.feat{list-style:none;padding:0;margin:0 auto 28px;display:inline-flex;flex-direction:column;gap:6px;text-align:left;font-size:14px}
+.feat li::before{content:"✓";color:var(--accent);font-weight:800;margin-right:8px}
+.big{display:block;width:100%;max-width:320px;margin:0 auto 10px;min-height:56px;border-radius:16px;border:1px solid var(--line);background:var(--surface);color:var(--text);font-size:17px;font-weight:700}
+.big.primary{background:var(--accent);color:var(--accent-ink);border-color:transparent;box-shadow:0 6px 16px color-mix(in srgb,var(--accent) 35%,transparent)}
+.ver{font-size:11px;color:var(--muted);margin-top:14px}
+
+/* loading */
+#loading{align-items:center;justify-content:center;text-align:center}
+.spinner{width:44px;height:44px;border-radius:50%;border:4px solid var(--accent-soft);border-top-color:var(--accent);animation:spin 0.9s linear infinite;margin:0 auto 18px}
+.ld-text{font-weight:700;margin-bottom:14px}
+.ld-bar{width:220px;height:8px;border-radius:4px;background:var(--surface2);overflow:hidden;margin:0 auto}
+.ld-bar i{display:block;height:100%;width:0;background:var(--accent);border-radius:4px}
+.ld-tip{margin-top:22px;font-size:12px;color:var(--muted)}
+
+/* game */
+.top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.brand{font-weight:800;font-size:16px}
+.reset{border:1px solid var(--line);background:var(--surface);color:var(--text);border-radius:999px;padding:7px 14px;font-size:13px;font-weight:700}
+.status{display:grid;grid-template-columns:1fr 1fr 1.4fr;gap:8px;margin-bottom:10px}
+.stat{background:var(--surface);border-radius:12px;padding:7px 10px}
+.stat small{display:block;font-size:10px;color:var(--muted)}
+.stat b{font-size:17px;font-variant-numeric:tabular-nums}
+.prog{height:5px;border-radius:3px;background:var(--surface2);margin-top:4px;overflow:hidden}
+.prog i{display:block;height:100%;width:0;background:var(--accent);transition:width .4s}
+.board-wrap{position:relative;width:100%;max-width:min(480px,max(260px,calc(100vh - 320px)));max-width:min(480px,max(260px,calc(100dvh - 320px)));margin:0 auto}
+.board{display:grid;grid-template-columns:repeat(9,1fr);grid-template-rows:repeat(9,1fr);width:100%;aspect-ratio:1/1;border:2px solid var(--line-strong);border-radius:10px;overflow:hidden;background:var(--surface)}
+.board.wobble{animation:wobble .6s ease}
+.cell{display:flex;align-items:center;justify-content:center;font-size:clamp(17px,5.4vw,27px);border-right:1px solid var(--line);border-bottom:1px solid var(--line);position:relative;touch-action:manipulation;transition:background .12s}
+.cell.c8{border-right:none}.cell.r8{border-bottom:none}
+.cell.bR{border-right:2px solid var(--line-strong)}.cell.bB{border-bottom:2px solid var(--line-strong)}
+.cell.given{color:var(--given);font-weight:800}
+.cell.user{color:var(--user);font-weight:500}
+.cell.hl{background:var(--hl)}
+.cell.same{background:var(--same)}
+.cell.conflict{background:var(--conflict)}
+.cell.sel{background:var(--sel)}
+.cell.wrong{color:var(--wrong);background:var(--wrong-bg)}
+.cell.sel.wrong{box-shadow:inset 0 0 0 2px var(--wrong)}
+.board.faint .cell.hl,.board.faint .cell.same{background:transparent}
+.board.faint .cell.sel{background:var(--sel-faint)}
+.cell.pop{animation:cellpop .5s ease}
+.plus{position:absolute;top:-4px;right:2px;font-size:11px;color:var(--accent);font-weight:800;animation:floatup .8s ease forwards;pointer-events:none}
+.working{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;background:var(--veil);border-radius:10px;font-size:13px;font-weight:700;z-index:3}
+.working.on{display:flex}
+.working .spinner{width:30px;height:30px;border-width:3px;margin-bottom:8px}
+.pad{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:12px auto 0;width:100%;max-width:480px}
+.key{height:58px;border:none;border-radius:14px;background:var(--surface);color:var(--text);font-size:24px;font-weight:800;position:relative;box-shadow:0 1px 0 var(--line);transition:transform .25s ease}
+.key small{position:absolute;bottom:4px;right:7px;font-size:10px;color:var(--muted);font-weight:500}
+.key:active{filter:brightness(.94)}
+.key.done{opacity:.35}
+.key.erase{font-size:13px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;color:var(--muted)}
+.key.erase b{font-size:20px;line-height:1}
+
+/* result */
+.res-card{margin:auto 0;text-align:center;padding:20px 4px}
+.res-badge{display:inline-block;background:var(--accent);color:var(--accent-ink);font-weight:800;padding:6px 16px;border-radius:999px;margin-bottom:12px}
+.res-card h1{font-size:24px;margin:0 0 18px}
+.res-stats{background:var(--surface);border-radius:16px;padding:6px 16px;margin:0 auto 14px;max-width:340px;text-align:left}
+.res-stats div{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--line);font-size:14px}
+.res-stats div:last-child{border-bottom:none}
+.res-stats b{font-variant-numeric:tabular-nums}
+.res-note{color:var(--muted);font-size:13px;margin:0 0 20px;line-height:1.7}
+
+/* modal */
+.modal-layer{position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;padding:calc(env(safe-area-inset-top,0px) + 16px) 16px calc(env(safe-area-inset-bottom,0px) + 16px);background:var(--overlay)}
+.modal-layer.show{display:flex;animation:fade .15s ease}
+.modal{width:100%;max-width:360px;max-height:100%;overflow:auto;background:var(--surface);color:var(--text);border-radius:20px;padding:22px 20px 18px;box-shadow:var(--shadow);animation:pop .24s cubic-bezier(.2,1.4,.4,1)}
+.tag{display:inline-block;font-size:11px;font-weight:800;color:var(--accent);background:var(--accent-soft);padding:3px 9px;border-radius:999px;margin-bottom:8px}
+.modal h2{margin:0 0 10px;font-size:19px;line-height:1.4}
+.modal p{margin:0 0 10px;line-height:1.75;font-size:15px}
+.small{font-size:12px;color:var(--muted)}
+.merr{color:var(--wrong);font-size:13px;min-height:0;font-weight:700}
+.btns{display:flex;flex-direction:column;gap:8px;margin-top:14px}
+.btns.row{flex-direction:row}.btns.row .mbtn{flex:1}
+.mbtn{min-height:48px;border-radius:12px;border:1px solid var(--line);background:var(--surface2);color:var(--text);font-size:15px;font-weight:700;padding:0 12px}
+.mbtn.primary{background:var(--accent);color:var(--accent-ink);border-color:transparent}
+.mbtn.ghost{background:transparent;border:none;color:var(--muted);font-size:12px;min-height:34px;font-weight:500;text-decoration:underline}
+.mbtn:disabled{opacity:.45;cursor:default}
+.confirm-num{width:64px;height:64px;margin:4px auto 12px;border-radius:16px;background:var(--accent-soft);color:var(--user);font-size:34px;font-weight:800;display:flex;align-items:center;justify-content:center}
+.modal.confirm{text-align:center}
+.dots{display:flex;gap:6px;justify-content:center;margin-top:6px}
+.dots i{width:7px;height:7px;border-radius:50%;background:var(--line)}
+.dots i.on{background:var(--accent)}
+.mission,.list{list-style:none;padding:0;margin:0 0 6px}
+.mission li{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px dashed var(--line);font-size:14px}
+.mission b{color:var(--muted);font-variant-numeric:tabular-nums}
+.mission b.done{color:var(--accent)}
+.list li{font-size:14px;line-height:1.7;padding-left:1em;text-indent:-1em}
+.list li::before{content:"・"}
+.scroll{max-height:180px;overflow:auto;background:var(--surface2);border-radius:10px;padding:10px 12px;font-size:12px;line-height:1.8;color:var(--muted);user-select:text}
+.plans{display:flex;flex-direction:column;gap:6px;margin-bottom:4px}
+.plan{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-radius:12px;background:var(--surface2);font-size:14px;position:relative}
+.plan.hot{background:var(--accent-soft);outline:2px solid var(--accent)}
+.plan em{position:absolute;top:-9px;left:10px;font-style:normal;font-size:10px;font-weight:800;background:var(--gold);color:#3b2600;padding:1px 7px;border-radius:999px}
+.check{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
+.check input{width:18px;height:18px;accent-color:var(--accent)}
+.loading-modal{text-align:center;max-width:280px}
+.loading-modal .spinner{margin-bottom:12px}
+.pbar{height:8px;border-radius:4px;background:var(--surface2);overflow:hidden;margin:8px 0 10px}
+.pbar i{display:block;height:100%;width:0;background:var(--accent);transition:width 4s cubic-bezier(.1,.9,.2,1)}
+.rest{text-align:center}
+.breath{width:90px;height:90px;border-radius:50%;margin:6px auto 16px;background:var(--accent-soft);animation:breath 4s ease-in-out infinite}
+.typing{font-family:inherit;white-space:pre-wrap;font-size:14px;line-height:1.9;margin:0;min-height:12em}
+.rank{font-size:34px;font-weight:800;color:var(--gold);text-align:center;min-height:1.3em}
+.rank.bump{animation:boom .4s ease}
+.survey .q{margin:12px 0}
+.survey .q b{display:block;font-size:14px;margin-bottom:6px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip input{position:absolute;opacity:0;pointer-events:none}
+.chip span{display:inline-block;padding:7px 11px;border-radius:999px;background:var(--surface2);font-size:13px;border:1px solid var(--line)}
+.chip input:checked + span{background:var(--accent);color:var(--accent-ink);border-color:transparent}
+textarea{width:100%;border-radius:10px;border:1px solid var(--line);background:var(--surface2);color:var(--text);font:inherit;font-size:16px;padding:8px 10px;user-select:text;-webkit-user-select:text;resize:none}
+
+/* effects */
+.modal-layer.fx{background:radial-gradient(circle at 50% 42%,rgba(255,206,92,.6),rgba(24,18,40,.82) 72%);overflow:hidden}
+.fx-rays{position:absolute;left:50%;top:42%;width:240vmax;height:240vmax;margin:-120vmax 0 0 -120vmax;background:repeating-conic-gradient(rgba(255,255,255,.13) 0 9deg,transparent 9deg 18deg);animation:spin 9s linear infinite}
+.fx-box{position:relative;text-align:center;color:#fff;padding:20px;max-width:420px}
+.fx-title{font-size:clamp(44px,15vw,84px);font-weight:800;line-height:1.1;background:linear-gradient(180deg,#fffbd6,#ffc229 58%,#ff7a1a);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 4px 0 rgba(110,40,0,.55));animation:boom .6s cubic-bezier(.2,1.6,.4,1)}
+.fx-sub{font-size:17px;font-weight:700;min-height:3.2em;line-height:1.6;text-shadow:0 2px 8px rgba(0,0,0,.6);margin-top:10px}
+.fx-sub.in{animation:subin .4s ease}
+.fx-small .fx-title{font-size:clamp(34px,11vw,56px)}
+.fx-note{position:absolute;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 44px);text-align:center;color:rgba(255,255,255,.85);font-size:12px;font-weight:700}
+.fx-note button{border:1px solid rgba(255,255,255,.4);background:rgba(255,255,255,.12);color:#fff;border-radius:999px;padding:6px 14px;font-size:12px;opacity:.6}
+.fx-bar{position:absolute;left:28px;right:28px;bottom:calc(env(safe-area-inset-bottom,0px) + 28px);height:5px;border-radius:3px;background:rgba(255,255,255,.22);overflow:hidden}
+.fx-bar i{display:block;height:100%;width:0;background:#fff;animation:grow linear forwards}
+.confetti{position:absolute;top:-24px;width:9px;height:14px;border-radius:2px;animation:fall linear infinite}
+
+/* toasts */
+.toasts{position:fixed;left:0;right:0;top:calc(env(safe-area-inset-top,0px) + 8px);z-index:80;display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none;padding:0 12px}
+.toast{max-width:420px;width:100%;background:var(--surface);color:var(--text);border-radius:14px;padding:10px 14px;box-shadow:var(--shadow);font-size:13px;line-height:1.5;border-left:4px solid var(--accent);animation:slide .3s ease}
+.toast.ach{border-left-color:var(--gold)}
+.toast.bad{border-left-color:var(--wrong)}
+.toast.out{animation:out .3s ease forwards}
+
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes fade{from{opacity:0}}
+@keyframes pop{from{transform:scale(.85);opacity:0}}
+@keyframes boom{0%{transform:scale(.2);opacity:0}100%{transform:scale(1);opacity:1}}
+@keyframes subin{from{transform:translateY(8px);opacity:0}}
+@keyframes grow{to{width:100%}}
+@keyframes fall{from{transform:translateY(0) rotate(0)}to{transform:translateY(115vh) rotate(720deg)}}
+@keyframes slide{from{transform:translateY(-16px);opacity:0}}
+@keyframes out{to{transform:translateY(-10px);opacity:0}}
+@keyframes cellpop{50%{transform:scale(1.18)}}
+@keyframes floatup{to{transform:translateY(-14px);opacity:0}}
+@keyframes wobble{20%{transform:rotate(-1.5deg)}40%{transform:rotate(1.5deg) scale(1.01)}60%{transform:rotate(-1deg)}80%{transform:rotate(.6deg)}}
+@keyframes breath{50%{transform:scale(1.25)}}
+@media (prefers-reduced-motion: reduce){.fx-rays{animation:none}.confetti{animation-duration:6s!important}}
+</style>
+</head>
+<body>
+<div id="app">
+  <section id="title" class="screen active">
+    <div class="title-wrap">
+      <div class="logo"><span>5</span><span>3</span><span></span><span>6</span><span></span><span>9</span><span></span><span>8</span><span>1</span></div>
+      <h1>ここちよナンプレ</h1>
+      <p class="catch">毎日5分。<br>やさしく、ここちよい脳トレ。</p>
+      <ul class="feat"><li>シンプルで見やすい盤面</li><li>ていねいなサポート機能</li><li>ストレスのない快適設計</li></ul>
+      <button id="start" class="big primary" type="button">はじめる</button>
+      <div class="ver">Ver 1.0.2</div>
+    </div>
+  </section>
+
+  <section id="loading" class="screen">
+    <div class="spinner"></div>
+    <div class="ld-text" id="ld-text">読み込み中…</div>
+    <div class="ld-bar"><i id="ld-bar"></i></div>
+    <div class="ld-tip" id="ld-tip"></div>
+  </section>
+
+  <section id="game" class="screen">
+    <div class="top">
+      <div class="brand">ここちよナンプレ</div>
+      <button id="reset" class="reset" type="button">↺ やり直す</button>
+    </div>
+    <div class="status">
+      <div class="stat"><small>タイム</small><b id="st-time">00:00</b></div>
+      <div class="stat"><small>ミス</small><b id="st-miss">0</b></div>
+      <div class="stat"><small>進捗</small><b id="st-prog">0 / 0</b><div class="prog"><i id="st-bar"></i></div></div>
+    </div>
+    <div class="board-wrap">
+      <div id="board" class="board"></div>
+      <div id="working" class="working"><div class="spinner"></div><span id="working-text">処理中…</span></div>
+    </div>
+    <div id="pad" class="pad"></div>
+  </section>
+
+  <section id="result" class="screen">
+    <div class="res-card">
+      <div class="res-badge">CLEAR</div>
+      <h1>おつかれさまでした</h1>
+      <div class="res-stats" id="res-stats"></div>
+      <p class="res-note">ナンプレ自体は、とても普通の問題でした。</p>
+      <button id="again" class="big primary" type="button">追加問題に挑戦する</button>
+      <button id="to-title" class="big" type="button">タイトルに戻る</button>
+    </div>
+  </section>
+</div>
+<div id="modal-layer" class="modal-layer" role="dialog" aria-modal="true"></div>
+<div id="toasts" class="toasts" aria-live="polite"></div>
+
+<script>
+(() => {
+'use strict';
+const $ = s => document.querySelector(s);
+const rand = (a, b) => a + Math.random() * (b - a);
+const randi = (a, b) => Math.floor(rand(a, b + 1));
+const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const fmt = ms => { const s = Math.floor(ms / 1000); return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0'); };
+
+/* セッション：リセット時に古い非同期処理を止めるための番号 */
+let SESSION = 0;
+const wait = ms => { const s = SESSION; return new Promise(r => setTimeout(() => { if (s === SESSION) r(); }, ms)); };
+
+/* =========================================================
+   1. ナンプレ本体（純粋なロジックのみ。妨害とは無関係）
+   ========================================================= */
+const Sudoku = (() => {
+  // 解が一意に定まる既知の問題とその解
+  const BASE_P = '530070000600195000098000060800060003400803001700020006060000280000419005000080079';
+  const BASE_S = '534678912672195348198342567859761423426853791713924856961537284287419635345286179';
+  let solution = [], values = [], given = [];
+  const permIdx = () => shuffle([0, 1, 2]).flatMap(b => shuffle([0, 1, 2]).map(r => b * 3 + r));
+
+  // 数字の置換・行列の入れ替え・転置は解の一意性を保つ。さらに解の数字を追加公開しても一意のまま。
+  function generate(blanks) {
+    const dmap = [0, ...shuffle([1, 2, 3, 4, 5, 6, 7, 8, 9])];
+    const rows = permIdx(), cols = permIdx(), tr = Math.random() < .5;
+    const P = [], S = [];
+    for (let r = 0; r < 9; r++) for (let c = 0; c < 9; c++) {
+      let rr = rows[r], cc = cols[c]; if (tr) [rr, cc] = [cc, rr];
+      const k = rr * 9 + cc;
+      P.push(dmap[+BASE_P[k]]); S.push(dmap[+BASE_S[k]]);
+    }
+    const empties = shuffle(P.map((v, i) => v ? -1 : i).filter(i => i >= 0));
+    while (empties.length > blanks) { const i = empties.pop(); P[i] = S[i]; }
+    solution = S; values = P.slice(); given = P.map(v => v > 0);
+  }
+  const sameUnit = (a, b) => {
+    const ra = Math.floor(a / 9), ca = a % 9, rb = Math.floor(b / 9), cb = b % 9;
+    return ra === rb || ca === cb || (Math.floor(ra / 3) === Math.floor(rb / 3) && Math.floor(ca / 3) === Math.floor(cb / 3));
+  };
+  function conflicts(i) {
+    const v = values[i]; if (!v) return false;
+    for (let k = 0; k < 81; k++) if (k !== i && values[k] === v && sameUnit(i, k)) return true;
+    return false;
+  }
+  return {
+    generate, conflicts, sameUnit,
+    set(i, v) { values[i] = v; return { correct: v === solution[i] }; },
+    clear(i) { values[i] = 0; },
+    value: i => values[i],
+    isGiven: i => given[i],
+    isWrong: i => !given[i] && values[i] !== 0 && values[i] !== solution[i],
+    wouldComplete(i, v) { for (let k = 0; k < 81; k++) if ((k === i ? v : values[k]) !== solution[k]) return false; return true; },
+    blanksTotal: () => given.filter(g => !g).length,
+    correctCount() { let n = 0; for (let k = 0; k < 81; k++) if (!given[k] && values[k] === solution[k]) n++; return n; },
+    progress() { const t = given.filter(g => !g).length; return t ? this.correctCount() / t : 0; },
+    countCorrect(d) { let n = 0; for (let k = 0; k < 81; k++) if (values[k] === d && solution[k] === d) n++; return n; },
+  };
+})();
+
+/* =========================================================
+   2. UI部品：モーダルキュー（重複しないよう1つずつ表示）とトースト
+   ========================================================= */
+const Stats = { closed: 0, confirms: 0, tutorials: 0, ach: 0 };
+
+const UI = (() => {
+  const layer = $('#modal-layer');
+  let queue = [], active = null, timers = [];
+  const track = t => { timers.push(t); return t; };
+  function modal(o) { return new Promise(res => { queue.push({ o, res }); pump(); }); }
+  function pump() { if (active || !queue.length) return; active = queue.shift(); show(active.o); }
+  function clearTimers() { timers.forEach(t => { clearTimeout(t); clearInterval(t); }); timers = []; }
+  function done(val) {
+    if (!active) return;
+    const a = active; active = null; clearTimers();
+    layer.className = 'modal-layer'; layer.innerHTML = '';
+    if (a.o.count !== false) Stats.closed++;
+    a.res(val); pump();
+  }
+  function show(o) {
+    layer.className = 'modal-layer show ' + (o.layerCls || '');
+    let root;
+    if (o.layerCls && o.layerCls.includes('fx')) { layer.innerHTML = o.html; root = layer; }
+    else {
+      const card = document.createElement('div');
+      card.className = 'modal ' + (o.cls || '');
+      card.innerHTML = (o.tag ? `<span class="tag">${o.tag}</span>` : '') + (o.title ? `<h2>${o.title}</h2>` : '') +
+        `<div class="mbody">${o.html || ''}</div><div class="merr"></div>`;
+      const btns = o.buttons || [];
+      if (btns.length) {
+        const wrap = document.createElement('div');
+        wrap.className = 'btns' + (o.row ? ' row' : '');
+        btns.forEach(b => {
+          const btn = document.createElement('button');
+          btn.type = 'button'; btn.className = 'mbtn ' + (b.kind || ''); btn.textContent = b.label;
+          if (b.locked) { btn.disabled = true; btn.dataset.locked = '1'; }
+          if (b.delay) {
+            btn.disabled = true; let left = Math.ceil(b.delay / 1000);
+            btn.textContent = `${b.label}（${left}）`;
+            const iv = track(setInterval(() => {
+              left--;
+              if (left <= 0) { clearInterval(iv); btn.disabled = false; btn.textContent = b.label; }
+              else btn.textContent = `${b.label}（${left}）`;
+            }, 1000));
+          }
+          btn.addEventListener('click', () => {
+            if (btn.disabled) return;
+            if (b.validate) { const err = b.validate(card); if (err) { card.querySelector('.merr').textContent = err; return; } }
+            done(b.get ? b.get(card) : b.value);
+          });
+          wrap.appendChild(btn);
+        });
+        card.appendChild(wrap);
+      }
+      layer.appendChild(card); root = card;
+    }
+    if (o.auto) track(setTimeout(() => done(true), o.auto));
+    if (o.onMount) o.onMount(root, done, track);
+  }
+  // リセット時：表示中・待機中のモーダルをすべて破棄（待っている処理はそのまま止まる）
+  function clearAll() { queue = []; active = null; clearTimers(); layer.className = 'modal-layer'; layer.innerHTML = ''; }
+  const toastBox = $('#toasts');
+  function toast(html, kind = '', ms = 3200) {
+    const t = document.createElement('div'); t.className = 'toast ' + kind; t.innerHTML = html;
+    toastBox.appendChild(t);
+    while (toastBox.children.length > 6) toastBox.firstChild.remove();
+    setTimeout(() => { t.classList.add('out'); setTimeout(() => t.remove(), 320); }, ms);
+  }
+  function working(on, text) { $('#working').classList.toggle('on', on); if (text) $('#working-text').textContent = text; }
+  return { modal, clearAll, toast, working, busy: () => !!active || queue.length > 0 };
+})();
+
+/* =========================================================
+   3. 妨害エンジン（ナンプレの判定とは分離）
+   ========================================================= */
+const Annoy = (() => {
+  let fired = new Set(), nextRandomAt = 0, inputCount = 0, tutIdx = 0, skipUsed = false, tipHidden = false, lastPhase = 0;
+
+  // 時間経過と進行度の両方で段階を決める（どちらか進んでいる方）
+  function phase() {
+    const t = Game.elapsed() / 1000;
+    return Math.min(4, Math.max(Math.floor(t / 60), Math.floor(Sudoku.progress() * 5)));
+  }
+  function reset() {
+    fired = new Set(); nextRandomAt = 0; inputCount = 0; tutIdx = 0; skipUsed = false; tipHidden = false; lastPhase = 0;
+    Stats.closed = 0; Stats.confirms = 0; Stats.tutorials = 0; Stats.ach = 0;
+  }
+
+  /* ---------- チュートリアル ---------- */
+  const BASIC = [
+    { h: 'ようこそ！', b: 'ナンプレは、9×9のマスに1〜9の数字を入れるパズルです。' },
+    { h: 'ルール', b: '縦の列・横の列・太線で囲まれた3×3のブロック、それぞれに1〜9の数字が1つずつ入ります。' },
+    { h: '操作方法', b: 'マスをタップして選び、下の数字ボタンで入力します。「消す」で数字を消せます。' },
+  ];
+  const TUT = {
+    basic: { name: 'チュートリアル', pages: BASIC },
+    recap: { name: 'おさらい編', pages: [...BASIC.map(p => ({ h: 'おさらい：' + p.h, b: p.b })),
+      { h: 'おさらい：まとめ', b: 'ナンプレは、9×9のマスに1〜9の数字を入れるパズルです。これで完璧ですね！' }] },
+    oyo: { name: '応用編', pages: [
+      { h: '応用編へようこそ', b: 'ここからは応用編です。ナンプレは、9×9のマスに1〜9の数字を入れるパズルです。' },
+      { h: '応用テクニック①', b: '使う数字は「1」から「9」までです。「0」や「10」は使えません。' },
+      { h: '応用テクニック②', b: '空いているマスに数字を入れると、空いているマスが1つ減ります。' },
+      { h: '理解度チェック', b: 'ナンプレで使う数字はどれでしょう？', quiz: ['1〜9', '0〜8', '1〜10', 'あ〜ん'], answer: '1〜9' },
+    ] },
+    jokyu: { name: '上級編', pages: [
+      { h: '上級者の心得①', b: '上級者は、数字を入力する前にマスを選択します。' },
+      { h: '上級者の心得②', b: '上級者は、正しい数字を入力します。間違った数字は入力しません。' },
+      { h: '上級者の心得③', b: '上級者は、ポップアップを素早く、そして丁寧に閉じます。' },
+    ] },
+    jissen: { name: '実践編', pages: [
+      { h: '実践してみよう', b: '実際にやってみましょう。まず、画面を見てください。' },
+      { h: 'いいですね！', b: 'しっかり画面を見られていますね。次に、このポップアップを閉じてください。' },
+    ] },
+    kiwami: { name: '超実践編・極', pages: [
+      { h: '極意', b: 'ナンプレの極意とは、「マスに数字を入れること」です。' },
+      { h: '極意（補足）', b: '補足：入れる数字は1〜9です。詳しくは基本編・応用編・上級編・実践編をご覧ください。' },
+    ] },
+  };
+  const ADV = ['oyo', 'jokyu', 'jissen', 'kiwami'];
+
+  async function runTutorial(key, depth = 0) {
+    const t = TUT[key]; Stats.tutorials++;
+    const p = phase();
+    for (let k = 0; k < t.pages.length; k++) {
+      const pg = t.pages[k];
+      const dots = `<div class="dots">${t.pages.map((_, j) => `<i class="${j === k ? 'on' : ''}"></i>`).join('')}</div>`;
+      if (pg.quiz) {
+        const r = await UI.modal({ tag: t.name, title: pg.h, html: `<p>${pg.b}</p>${dots}`, buttons: shuffle(pg.quiz).map(q => ({ label: q, value: q })) });
+        if (r !== pg.answer) {
+          await UI.modal({ tag: t.name, title: 'ざんねん！', html: '<p>不正解です。もう一度、最初から説明します。</p>', buttons: [{ label: 'はい', value: 1, kind: 'primary' }] });
+          k = -1; continue;
+        }
+        await UI.modal({ tag: t.name, title: '正解です！', html: '<p>すばらしい理解力です。あなたは応用編を修了しました。</p>', buttons: [{ label: '次へ', value: 1, kind: 'primary' }] });
+        continue;
+      }
+      const last = k === t.pages.length - 1;
+      const btns = [{ label: last ? 'とじる' : '次へ', value: 'next', kind: 'primary', delay: p >= 3 ? 1500 : 0 }];
+      if (k > 0) btns.push({ label: '戻る', value: 'back' });
+      if (!last) btns.push({ label: 'スキップ', value: 'skip', kind: 'ghost' });
+      const r = await UI.modal({ tag: t.name, title: pg.h, html: `<p>${pg.b}</p>${dots}`, buttons: btns });
+      if (r === 'back') { k -= 2; continue; }
+      if (r === 'skip') {
+        const s = await UI.modal({ tag: t.name, title: 'スキップしますか？', html: '<p>チュートリアルをスキップすると、ナンプレを十分に楽しめない可能性があります。</p>',
+          buttons: [{ label: '説明を読む', value: false, kind: 'primary' }, { label: 'スキップする', value: true }] });
+        if (s !== true) { k--; continue; }
+        if (skipUsed) {
+          await UI.modal({ tag: t.name, title: 'スキップできません', html: '<p>スキップは1プレイにつき1回までです。<br>このプレイでは使用済みです。</p>', buttons: [{ label: 'OK', value: 1, kind: 'primary' }] });
+          k--; continue;
+        }
+        skipUsed = true; UI.toast('チュートリアルをスキップしました'); break;
+      }
+    }
+    // 閉じた直後に別の説明
+    if (phase() >= 3 && depth < 2 && Math.random() < .55) {
+      await wait(250);
+      UI.toast('📘 関連するチュートリアルがあります');
+      await runTutorial(ADV[tutIdx++ % ADV.length], depth + 1);
+    }
+  }
+
+  /* ---------- 通知・案内 ---------- */
+  const ACH = ['はじめての入力', 'ポップアップを閉じた', 'ポップアップを10回閉じた', '画面をタップした', 'まばたきをした', '呼吸をした',
+    'アプリを開いている', '確認ダイアログで「はい」を押した', '実績を解除した', '実績を2回解除した', 'ナンプレのことを考えた',
+    '指を使った', '時計を気にした', '盤面を見た', '数字を知っている', '座っている（推定）', '通知を読んだ', 'まだ続けている'];
+  function achievements(n) {
+    const s = SESSION;
+    for (let k = 0; k < n; k++) setTimeout(() => {
+      if (s !== SESSION) return;
+      Stats.ach++;
+      UI.toast(`🏆 <b>実績解除</b>　${Math.random() < .2 ? `数字「${randi(1, 9)}」を見た` : pick(ACH)}`, 'ach', 3600);
+    }, k * 380);
+  }
+
+  const TIPS = ['マスをタップすると、マスを選択できます。', '数字ボタンを押すと、選択中のマスに数字が入ります。',
+    '1〜9の数字は、それぞれ9個ずつ使います。', 'わからないときは、わかるマスから埋めましょう。',
+    '画面に近づきすぎないようにしましょう。', 'このアドバイスは、ランダムなタイミングで表示されます。'];
+
+  const Pop = {
+    async tip() {
+      const checked = await UI.modal({ tag: 'ワンポイント', title: 'ワンポイントアドバイス',
+        html: `<p>${pick(TIPS)}</p>${tipHidden ? '<p class="small">※「今後表示しない」が選択されていますが、大切な内容のため表示しています。</p>' : ''}<label class="check"><input type="checkbox"> 今後このメッセージを表示しない</label>`,
+        buttons: [{ label: 'わかった', kind: 'primary', get: c => c.querySelector('input').checked }] });
+      if (checked) { tipHidden = true; UI.toast('設定を保存しました'); }
+    },
+    async daily() {
+      const r = await UI.modal({ tag: 'デイリー', title: '本日のデイリーミッション', html: `<ul class="mission">
+        <li><span>ナンプレを開く</span><b class="done">達成</b></li>
+        <li><span>数字を50回入力する</span><b>${inputCount}/50</b></li>
+        <li><span>ポップアップを100回閉じる</span><b>${Stats.closed}/100</b></li>
+        <li><span>チュートリアルを3本読む</span><b>${Math.min(Stats.tutorials, 3)}/3</b></li></ul>`,
+        buttons: [{ label: '報酬を受け取る', value: 1, kind: 'primary' }, { label: 'あとで', value: 0 }] });
+      if (r === 1) await UI.modal({ tag: 'デイリー', title: '報酬を獲得しました！', html: '<p style="text-align:center;font-size:20px;font-weight:800">🧩 ヒントのかけら ×1</p><p class="small">ヒント1回との交換には、ヒントのかけらが300個必要です。</p>', buttons: [{ label: 'OK', value: 1, kind: 'primary' }] });
+      else UI.toast('デイリーミッションは定期的にお知らせします');
+    },
+    async hint() {
+      let r = await UI.modal({ tag: 'ショップ', title: '💡 お困りですか？', html: `<p>ヒントを使えば、迷ったマスも一発解決！</p><div class="plans">
+        <div class="plan"><span>ヒント ×1</span><b>¥120</b></div>
+        <div class="plan hot"><em>人気No.1</em><span>ヒント ×10</span><b>¥980</b></div>
+        <div class="plan"><span>ヒント無制限（月額）</span><b>¥1,480</b></div></div>`,
+        buttons: [{ label: 'ヒントを購入する', value: 'buy', kind: 'primary' }, { label: '購入せずに自力で頑張る（非推奨）', value: 'no', kind: 'ghost' }] });
+      if (r === 'no' && phase() >= 4) r = await UI.modal({ tag: 'ショップ', title: '本当によろしいですか？', html: '<p>今なら<b>初回限定20%OFF</b>。この機会を逃すと、次のチャンスは約30秒後です。</p>',
+        buttons: [{ label: 'やっぱり見てみる', value: 'buy', kind: 'primary' }, { label: '購入しない', value: 'no', kind: 'ghost' }] });
+      if (r === 'buy') await UI.modal({ tag: 'ショップ', title: 'ストアに接続できませんでした', html: '<p>現在、ヒントの販売は行っておりません。<br>（そもそもヒント機能はありません）</p>', buttons: [{ label: 'OK', value: 1, kind: 'primary' }] });
+    },
+    async notice() {
+      const title = pick(['【重要】利用規約改定のお知らせ', '【重要】プライバシーポリシー更新のお知らせ', '【重要】お知らせ機能に関するお知らせ']);
+      await UI.modal({ tag: '重要なお知らせ', title, html: `<div class="scroll">
+        第1条（目的）本規約は、ここちよナンプレ（以下「本アプリ」）の利用に関する条件を定めるものです。<br>
+        第2条（ポップアップ）本アプリは、ユーザーの快適なプレイのために、必要に応じてポップアップを表示します。必要かどうかの判断は本アプリが行います。<br>
+        第3条（確認）ユーザーは、数字の入力にあたり、確認に同意するものとします。確認への同意についても確認する場合があります。<br>
+        第4条（チュートリアル）本アプリは、ユーザーの理解度にかかわらず、チュートリアルを表示できるものとします。<br>
+        第5条（実績）ユーザーの一挙手一投足は、実績として称賛される場合があります。<br>
+        第6条（お知らせ）本規約の改定は、プレイ中に随時お知らせします。<br>
+        第7条（その他）本規約に定めのない事項は、ポップアップにてお知らせします。</div>`,
+        buttons: [{ label: '内容を確認しました', value: 1, kind: 'primary', delay: phase() >= 4 ? 4000 : 2500 }] });
+    },
+    async update() {
+      const r = await UI.modal({ tag: 'アップデート', title: '新しいバージョンがあります', html: `<p><b>Ver 1.0.${randi(3, 9)}</b> が配信されています。</p><ul class="list">
+        <li>ポップアップの表示タイミングを最適化しました</li><li>「お知らせ」をお知らせする機能を追加しました</li><li>軽微な不具合を追加しました</li></ul>`,
+        buttons: [{ label: '今すぐ更新', value: 1, kind: 'primary' }, { label: 'あとで', value: 0 }] });
+      if (r === 1) {
+        await UI.modal({ cls: 'loading-modal', count: false, auto: 4300, html: '<p><b>アップデート中…</b></p><div class="pbar"><i></i></div><p class="small">アプリを閉じないでください</p>',
+          onMount(root) { const i = root.querySelector('.pbar i'); requestAnimationFrame(() => requestAnimationFrame(() => { i.style.width = '97%'; })); } });
+        await UI.modal({ tag: 'アップデート', title: '確認が完了しました', html: '<p>すでに最新バージョンでした。<br>変更点はありません。</p>', buttons: [{ label: 'OK', value: 1, kind: 'primary' }] });
+      } else UI.toast('🔔 あとでもう一度お知らせします');
+    },
+    async rest() {
+      const m = Math.max(1, Math.floor(Game.elapsed() / 60000));
+      let r = await UI.modal({ tag: '健康', title: '☕ 休憩しませんか？', html: `<p>プレイ開始から${m}分が経過しました。<br>長時間のプレイは目や体に負担がかかります。</p>`,
+        buttons: [{ label: '休憩する', value: 'rest', kind: 'primary' }, { label: '続ける', value: 'go' }] });
+      if (r === 'go') r = await UI.modal({ tag: '健康', title: '本当に続けますか？', html: '<p>休憩しないと、ここちよさが低下するおそれがあります。</p>',
+        buttons: [{ label: '休憩する', value: 'rest', kind: 'primary' }, { label: 'それでも続ける', value: 'go' }] });
+      if (r !== 'rest') return;
+      await UI.modal({ cls: 'rest', count: false, auto: 8000, html: '<div class="breath"></div><p><b>深呼吸しましょう</b></p><p class="small" id="rest-count">残り 8 秒</p>',
+        onMount(root, done, track) { let s = 8; const el = root.querySelector('#rest-count'); track(setInterval(() => { s--; el.textContent = `残り ${Math.max(0, s)} 秒`; }, 1000)); } });
+      UI.toast('🌿 休憩できました。えらい！');
+    },
+  };
+
+  /* ---------- 演出 ---------- */
+  const FX_COLORS = ['#ff5d8f', '#ffd166', '#06d6a0', '#4cc9f0', '#a78bfa', '#ff9f1c'];
+  const confetti = n => Array.from({ length: n }, () =>
+    `<i class="confetti" style="left:${rand(0, 100).toFixed(1)}%;background:${pick(FX_COLORS)};animation-duration:${rand(1.6, 3.4).toFixed(2)}s;animation-delay:${rand(-3, 0).toFixed(2)}s"></i>`).join('');
+  function fx({ title, lines, duration, level, note }) {
+    return UI.modal({ layerCls: 'fx' + (level <= 1 ? ' fx-small' : ''), count: false, auto: duration,
+      html: `${level >= 2 ? '<div class="fx-rays"></div>' : ''}${confetti(level >= 2 ? 30 + level * 12 : 14)}
+        <div class="fx-box"><div class="fx-title">${title}</div><div class="fx-sub"></div></div>
+        <div class="fx-note">${note || '演出中…（スキップできません）'}</div><div class="fx-bar"><i style="animation-duration:${duration}ms"></i></div>`,
+      onMount(root, done, track) {
+        const sub = root.querySelector('.fx-sub'); let k = 0;
+        const step = () => { sub.innerHTML = lines[k % lines.length]; sub.classList.remove('in'); void sub.offsetWidth; sub.classList.add('in'); k++; };
+        step(); track(setInterval(step, Math.max(1000, duration / lines.length)));
+      } });
+  }
+  const BIG = ['正解！！', 'すばらしい！！', '天才！！', '完璧！！', '神の一手！！', 'PERFECT!!', 'EXCELLENT!!'];
+  const PRAISE = ['あなたの才能に、開発チームが震えています', 'このマスを正解できる人は、全人類の0.0001%です',
+    '今の1マスで、脳年齢が3歳若返りました（当社比）', 'ナンプレ界に、新たな伝説が生まれました', 'その数字、まるで最初からそこにあったかのよう',
+    'ご家族に報告しましょう', '1マス正解ボーナス！ ここちよポイント +10', '指の動き、美しすぎます', '歴史の教科書に載るかもしれません'];
+
+  /* ---------- フック（ゲーム側から呼ばれる） ---------- */
+  async function beforeInput(i, v) {
+    const p = phase(); const qs = [];
+    if (p >= 1) qs.push(['確認', '本当にこの数字でよろしいですか？']);
+    if (p >= 2) qs.push(['確定の確認', '入力内容を確定しますか？']);
+    if (p >= 3) qs.push(['重要な確認', 'この操作は取り消せませんがよろしいですか？<br><span class="small">※実際には「消す」で取り消せます</span>']);
+    if (p >= 4 && Math.random() < .5) qs.push(['念のための確認', '念のため、もう一度お聞きします。本当によろしいですか？']);
+    for (const [t, msg] of qs) {
+      Stats.confirms++;
+      let btns = [{ label: 'はい', value: true, kind: 'primary' }, { label: 'いいえ', value: false }];
+      if (p >= 4 && Math.random() < .35) btns.reverse();
+      const r = await UI.modal({ tag: '確認', title: t, cls: 'confirm', row: true,
+        html: `<div class="confirm-num">${v}</div><p>${msg}</p><p class="small">${Math.floor(i / 9) + 1}行目・${i % 9 + 1}列目</p>`, buttons: btns });
+      if (r !== true) { UI.toast('入力をキャンセルしました'); return false; }
+    }
+    return true;
+  }
+  async function beforeFinal() {
+    const r1 = await UI.modal({ tag: '最終確認', title: 'これが最後のマスです', html: '<p>本当にクリアしてもよろしいですか？<br>クリアすると、このナンプレは終了します。</p>',
+      buttons: [{ label: 'クリアする', value: true, kind: 'primary', delay: 2000 }, { label: 'もう少し考える', value: false }] });
+    if (r1 !== true) return false;
+    const r2 = await UI.modal({ tag: '最終確認', title: '最終確認（再）', html: '<p>クリア後は、この盤面を二度と遊ぶことができません。<br><span class="small">（新しい問題は遊べます）</span></p>',
+      buttons: [{ label: '理解してクリアする', value: true, kind: 'primary' }, { label: 'やめる', value: false }] });
+    return r2 === true;
+  }
+  async function inputDelay() {
+    const p = phase(); if (p < 3) return;
+    UI.working(true, pick(['入力を処理しています…', '数字を検証しています…', 'サーバーと同期しています…']));
+    await wait(rand(700, 1400) * (p >= 4 ? 1.4 : 1));
+    UI.working(false);
+  }
+  const deselectAfterInput = () => phase() >= 1;
+  function mutatePad(order) {
+    const p = phase(), jitter = {};
+    if (p < 3) return { order, jitter };
+    order = order.slice();
+    for (let n = 0; n < (p >= 4 ? 2 : 1); n++) { const a = randi(0, order.length - 2); [order[a], order[a + 1]] = [order[a + 1], order[a]]; }
+    const j = p >= 4 ? 7 : 4;
+    order.forEach(k => { jitter[k] = `translate(${randi(-j, j)}px,${randi(-j, j)}px)`; });
+    return { order, jitter };
+  }
+  async function afterInput(res, i, cellPulse) {
+    inputCount++; const p = phase();
+    if (!res.correct) {
+      UI.toast('❌ 不正解です', 'bad');
+      if (p >= 2 && Math.random() < .5) {
+        await UI.modal({ tag: 'アドバイス', title: 'ドンマイ！', html: '<p>間違えても大丈夫！<br>ナンプレのルールをもう一度確認しましょう。</p>', buttons: [{ label: 'ルールを確認する', value: 1, kind: 'primary' }] });
+        await runTutorial('recap');
+      }
+      return;
+    }
+    if (p === 0) { cellPulse(i); return; } // 控えめ
+    const remain = Sudoku.blanksTotal() - Sudoku.correctCount();
+    const lines = shuffle(PRAISE).slice(0, p + 1); lines.push(`あと${remain}マス！ あなたならできる！！`);
+    const dur = p === 1 ? 1800 : p === 2 ? rand(3000, 4000) : rand(4000, 5000);
+    await fx({ title: pick(BIG), lines, duration: dur, level: p });
+    if (p >= 2 && Math.random() < .45) achievements(randi(2, p + 2));
+  }
+
+  /* ---------- 段階的解放 ---------- */
+  const PHASE_EVENT = {
+    1: async () => {
+      await UI.modal({ tag: 'お知らせ', title: 'おさらいの時間です', html: '<p>プレイ開始から時間が経ちました。ルールを忘れていませんか？<br>念のため、チュートリアルをもう一度表示します。</p>', buttons: [{ label: 'OK', value: 1, kind: 'primary' }] });
+      await runTutorial('recap');
+    },
+    2: async () => { achievements(4); await Pop.daily(); },
+    3: async () => { await Pop.update(); await runTutorial(ADV[tutIdx++ % ADV.length]); },
+    4: async () => { achievements(6); await Pop.notice(); await Pop.hint(); await Pop.rest(); await Pop.daily(); },
+  };
+  const GAP = [Infinity, 40000, 26000, 18000, 12000];
+  function randomEvent(p) {
+    const pool = [Pop.tip];
+    if (p >= 2) pool.push(Pop.daily, Pop.hint, async () => achievements(randi(3, 5)));
+    if (p >= 3) pool.push(Pop.update, Pop.notice, () => runTutorial(ADV[tutIdx++ % ADV.length]));
+    if (p >= 4) {
+      pool.push(Pop.rest);
+      return async () => { const n = randi(2, 3); for (let k = 0; k < n; k++) await pick(pool)(); };
+    }
+    return pick(pool);
+  }
+  function tick() {
+    const p = phase();
+    if (p !== lastPhase) { lastPhase = p; Game.render(); }
+    if (!Game.isIdle()) return;
+    const now = Date.now();
+    for (let k = 1; k <= p; k++) if (!fired.has(k)) {
+      fired.add(k); nextRandomAt = now + GAP[p] * rand(.8, 1.2);
+      Game.runFlow(PHASE_EVENT[k]); return;
+    }
+    if (p >= 1 && now >= nextRandomAt) {
+      nextRandomAt = now + GAP[p] * rand(.8, 1.2);
+      Game.runFlow(randomEvent(p));
+    }
+  }
+
+  /* ---------- クリア演出 ---------- */
+  const loadingModal = (text, ms) => UI.modal({ cls: 'loading-modal', count: false, auto: ms, html: `<div class="spinner"></div><p><b>${text}</b></p>` });
+
+  function evaluation() {
+    const text = [`クリアタイム …… ${fmt(Game.elapsed())}`, `ミス …… ${Game.mistakes()}回`, `閉じたポップアップ …… ${Stats.closed}個`,
+      `確認した回数 …… ${Stats.confirms}回`, `読んだチュートリアル …… ${Stats.tutorials}本`, `解除した実績 …… ${Stats.ach}個`, '', '総合評価 ……'].join('\n');
+    return UI.modal({ tag: '評価', title: '評価を集計しています', html: '<pre class="typing"></pre><div class="rank"></div>',
+      buttons: [{ label: '次へ', value: 1, kind: 'primary', locked: true }],
+      onMount(card, done, track) {
+        const pre = card.querySelector('.typing'), rank = card.querySelector('.rank'); let k = 0;
+        const iv = track(setInterval(() => {
+          pre.textContent = text.slice(0, ++k);
+          if (k < text.length) return;
+          clearInterval(iv);
+          const seq = ['S', 'SS', 'SSS', 'SSS+', 'SSS+（暫定）']; let j = 0;
+          const iv2 = track(setInterval(() => {
+            rank.textContent = seq[j++]; rank.classList.remove('bump'); void rank.offsetWidth; rank.classList.add('bump');
+            if (j >= seq.length) { clearInterval(iv2); card.querySelector('[data-locked]').disabled = false; }
+          }, 900));
+        }, 85));
+      } });
+  }
+  async function survey() {
+    const chips = (name, opts) => `<div class="chips">${opts.map(o => `<label class="chip"><input type="radio" name="${name}" value="${o}"><span>${o}</span></label>`).join('')}</div>`;
+    while (true) {
+      const r = await UI.modal({ tag: 'アンケート', title: 'アンケートにご協力ください', cls: 'survey',
+        html: `<p class="small">結果画面に進むには、すべての質問への回答が必要です。</p>
+          <div class="q"><b>Q1. このゲームの満足度は？</b>${chips('q1', ['★1', '★2', '★3', '★4', '★5'])}</div>
+          <div class="q"><b>Q2. 友人にすすめたいですか？（0〜10）</b>${chips('q2', ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'])}</div>
+          <div class="q"><b>Q3. ポップアップの量はいかがでしたか？</b>${chips('q3', ['少なすぎる', 'やや少ない', 'ちょうどいい', 'もっと欲しい'])}</div>
+          <div class="q"><b>Q4. ご意見・ご感想（10文字以上・必須）</b><textarea rows="3" placeholder="例：ポップアップがもう少し欲しいです"></textarea></div>`,
+        buttons: [{ label: '回答を送信する', value: 'send', kind: 'primary', validate(card) {
+          for (const n of ['q1', 'q2', 'q3']) if (!card.querySelector(`input[name=${n}]:checked`)) return '未回答の質問があります。';
+          if (card.querySelector('textarea').value.trim().length < 10) return 'ご意見は10文字以上でご記入ください。';
+          return '';
+        } }, { label: '回答しない', value: 'skip', kind: 'ghost' }] });
+      if (r === 'send') break;
+      await UI.modal({ tag: 'アンケート', title: 'お願い', html: '<p>アンケートに回答しないと、結果画面に進むことができません。</p><p class="small">所要時間：約30秒〜</p>', buttons: [{ label: '回答する', value: 1, kind: 'primary' }] });
+    }
+    await loadingModal('回答を送信しています…', 2600);
+    await UI.modal({ tag: 'アンケート', title: '追加の質問（これで最後です）', cls: 'survey',
+      html: `<p>先ほどのアンケートの満足度を教えてください。</p>${chips('q5', ['とても満足', '満足', 'ふつう', '不満'])}`,
+      buttons: [{ label: '送信する', value: 1, kind: 'primary', validate: c => c.querySelector('input[name=q5]:checked') ? '' : '回答を選んでください。' }] });
+    await loadingModal('送信しています…', 1600);
+    await UI.modal({ title: 'ご協力ありがとうございました', html: '<p>いただいたご意見は、今後のポップアップ開発に役立てさせていただきます。</p>', buttons: [{ label: '閉じる', value: 1, kind: 'primary' }] });
+  }
+  async function clearSequence() {
+    await loadingModal('結果を集計しています…', 2500);
+    await fx({ title: 'CLEAR!!', level: 4, duration: 11500, note: '<button type="button" disabled>スキップ</button>',
+      lines: ['ナンプレ、クリアーーー！！！', 'おめでとうございます！！！', 'あなたは、ナンプレを、クリアしました', 'この瞬間を、私たちは忘れません',
+        '開発チーム一同、涙が止まりません', 'ここで、これまでの軌跡を振り返りましょう', '1マス目… 2マス目… 3マス目…', '…振り返りは省略します', '改めて、おめでとうございます！！！'] });
+    await evaluation();
+    await survey();
+    await UI.modal({ tag: 'ご案内', title: '追加問題のご案内', html: '<p>クリアおめでとうございます！<br>続けて「ここちよナンプレ 第2問」を遊べます。</p><p class="small">※第2問も、このアプリで遊ぶことになります。</p>',
+      buttons: [{ label: '結果を見る', value: 1, kind: 'primary', delay: 2000 }] });
+  }
+
+  return { phase, reset, tick, beforeInput, beforeFinal, inputDelay, afterInput, deselectAfterInput, mutatePad, clearSequence,
+    intro: () => runTutorial('basic'), phaseFor: phase };
+})();
+
+/* =========================================================
+   4. ゲーム進行（画面・入力・状態管理）
+   ========================================================= */
+const Game = (() => {
+  const boardEl = $('#board'), padEl = $('#pad');
+  let sel = -1, busy = false, playing = false, t0 = 0, tEnd = 0, mistakes = 0, padOrder = [], jitter = {}, cells = [];
+  const BLANKS = 32;
+
+  function showScreen(id) { document.querySelectorAll('.screen').forEach(s => s.classList.toggle('active', s.id === id)); }
+  function buildBoard() {
+    boardEl.innerHTML = ''; cells = [];
+    for (let i = 0; i < 81; i++) {
+      const r = Math.floor(i / 9), c = i % 9, d = document.createElement('div');
+      let base = 'cell';
+      if (c === 2 || c === 5) base += ' bR'; if (r === 2 || r === 5) base += ' bB';
+      if (c === 8) base += ' c8'; if (r === 8) base += ' r8';
+      d.dataset.base = base; d.className = base;
+      d.addEventListener('click', () => { if (!playing || busy || UI.busy()) return; sel = i; render(); });
+      boardEl.appendChild(d); cells.push(d);
+    }
+  }
+  function render() {
+    boardEl.classList.toggle('faint', Annoy.phase() >= 3);
+    const sv = sel >= 0 ? Sudoku.value(sel) : 0;
+    for (let i = 0; i < 81; i++) {
+      const v = Sudoku.value(i); let cls = cells[i].dataset.base;
+      if (Sudoku.isGiven(i)) cls += ' given'; else if (v) cls += ' user';
+      if (Sudoku.isWrong(i)) cls += ' wrong'; else if (v && Sudoku.conflicts(i)) cls += ' conflict';
+      if (sel >= 0) {
+        if (i === sel) cls += ' sel';
+        else { if (Sudoku.sameUnit(i, sel)) cls += ' hl'; if (sv && v === sv) cls += ' same'; }
+      }
+      if (cells[i].classList.contains('pop')) cls += ' pop';
+      cells[i].className = cls;
+      if (!cells[i].querySelector('.plus')) cells[i].textContent = v || '';
+    }
+    padEl.innerHTML = '';
+    padOrder.forEach(k => {
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'key';
+      if (k === 'x') { b.classList.add('erase'); b.innerHTML = '<b>⌫</b>消す'; b.addEventListener('click', onErase); }
+      else {
+        const left = 9 - Sudoku.countCorrect(k);
+        b.innerHTML = `${k}<small>${left}</small>`; if (left <= 0) b.classList.add('done');
+        b.addEventListener('click', () => onNumber(k));
+      }
+      if (jitter[k]) b.style.transform = jitter[k];
+      padEl.appendChild(b);
+    });
+    updateStatus();
+  }
+  function updateStatus() {
+    $('#st-time').textContent = fmt(elapsed());
+    $('#st-miss').textContent = mistakes;
+    const total = Sudoku.blanksTotal(), done = Sudoku.correctCount();
+    $('#st-prog').textContent = `${done} / ${total}`;
+    $('#st-bar').style.width = (total ? done / total * 100 : 0) + '%';
+  }
+  function cellPulse(i) {
+    const c = cells[i]; c.classList.remove('pop'); void c.offsetWidth; c.classList.add('pop');
+    const plus = document.createElement('span'); plus.className = 'plus'; plus.textContent = '+1';
+    c.appendChild(plus); setTimeout(() => { plus.remove(); c.classList.remove('pop'); }, 800);
+  }
+  function afterOperationAnim() {
+    if (Annoy.phase() < 2) return;
+    boardEl.classList.remove('wobble'); void boardEl.offsetWidth; boardEl.classList.add('wobble');
+  }
+  const elapsed = () => t0 ? (tEnd || Date.now()) - t0 : 0;
+
+  async function onNumber(v) {
+    if (!playing || busy || UI.busy()) return;
+    if (sel < 0) { UI.toast('先にマスを選んでください'); return; }
+    if (Sudoku.isGiven(sel)) { UI.toast('このマスは変更できません'); return; }
+    if (Sudoku.value(sel) === v) return;
+    const sid = SESSION, i = sel; busy = true;
+    try {
+      if (!await Annoy.beforeInput(i, v)) return;
+      const finishing = Sudoku.wouldComplete(i, v);
+      if (finishing && !await Annoy.beforeFinal()) return;
+      await Annoy.inputDelay();
+      const res = Sudoku.set(i, v);
+      if (!res.correct) mistakes++;
+      if (Annoy.deselectAfterInput()) sel = -1;
+      const m = Annoy.mutatePad(padOrder); padOrder = m.order; jitter = m.jitter;
+      render(); afterOperationAnim();
+      if (finishing) {
+        tEnd = Date.now(); playing = false;
+        await Annoy.clearSequence();
+        showScreen('loading');
+        await Loading.run(['結果画面を準備しています…', '結果を美しく整えています…'], 2200);
+        showResult(); return;
+      }
+      await Annoy.afterInput(res, i, cellPulse);
+    } finally {
+      if (sid === SESSION) { busy = false; if (playing) render(); }
+    }
+  }
+  async function onErase() {
+    if (!playing || busy || UI.busy()) return;
+    if (sel < 0) { UI.toast('先にマスを選んでください'); return; }
+    if (Sudoku.isGiven(sel) || !Sudoku.value(sel)) return;
+    const sid = SESSION, i = sel; busy = true;
+    try {
+      if (Annoy.phase() >= 2) {
+        Stats.confirms++;
+        const r = await UI.modal({ tag: '確認', title: '消去の確認', cls: 'confirm', row: true, html: '<p>このマスの数字を消去しますか？</p>',
+          buttons: [{ label: '消去する', value: true, kind: 'primary' }, { label: 'キャンセル', value: false }] });
+        if (r !== true) return;
+      }
+      await Annoy.inputDelay();
+      Sudoku.clear(i);
+      if (Annoy.deselectAfterInput()) sel = -1;
+      render(); afterOperationAnim();
+    } finally {
+      if (sid === SESSION) { busy = false; if (playing) render(); }
+    }
+  }
+  async function runFlow(fn) {
+    if (busy) return;
+    busy = true; const sid = SESSION;
+    try { await fn(); } finally { if (sid === SESSION) { busy = false; if (playing) render(); } }
+  }
+  function showResult() {
+    const rows = [['クリアタイム', fmt(elapsed())], ['ミス', mistakes + '回'], ['閉じたポップアップ', Stats.closed + '個'],
+      ['確認した回数', Stats.confirms + '回'], ['読んだチュートリアル', Stats.tutorials + '本'], ['解除した実績', Stats.ach + '個']];
+    $('#res-stats').innerHTML = rows.map(([a, b]) => `<div><span>${a}</span><b>${b}</b></div>`).join('');
+    busy = false; showScreen('result');
+  }
+  async function start() {
+    SESSION++; const sid = SESSION;
+    UI.clearAll(); UI.working(false); Annoy.reset();
+    busy = true; playing = false; sel = -1; mistakes = 0; t0 = 0; tEnd = 0; jitter = {};
+    padOrder = [1, 2, 3, 4, 5, 6, 7, 8, 9, 'x'];
+    Sudoku.generate(BLANKS); buildBoard(); render();
+    showScreen('loading');
+    await Loading.run(['盤面を生成しています…', '最適な難易度を計算しています…', 'ここちよさを調整しています…'], 1800);
+    showScreen('game'); t0 = Date.now(); playing = true; render();
+    await Annoy.intro();
+    if (sid === SESSION) { busy = false; render(); }
+  }
+  function askReset() {
+    runFlow(async () => {
+      const r = await UI.modal({ tag: 'リセット', title: '最初からやり直しますか？', html: '<p>現在の進行状況は失われます。</p>', row: true,
+        buttons: [{ label: 'やり直す', value: true, kind: 'primary' }, { label: 'キャンセル', value: false }] });
+      if (r !== true) return;
+      if (Annoy.phase() >= 2) {
+        const r2 = await UI.modal({ tag: 'リセット', title: '本当にやり直しますか？', html: '<p>やり直すと、チュートリアルも最初から表示されます。</p>', row: true,
+          buttons: [{ label: 'やり直す', value: true, kind: 'primary' }, { label: 'キャンセル', value: false }] });
+        if (r2 !== true) return;
+      }
+      start();
+    });
+  }
+
+  $('#start').addEventListener('click', start);
+  $('#again').addEventListener('click', start);
+  $('#to-title').addEventListener('click', () => showScreen('title'));
+  $('#reset').addEventListener('click', () => { if (playing && !busy && !UI.busy()) askReset(); });
+
+  return { render, runFlow, elapsed, mistakes: () => mistakes, updateStatus,
+    isIdle: () => playing && !busy && !UI.busy() };
+})();
+
+/* ロード画面（99%で止まる） */
+const Loading = {
+  async run(texts, ms) {
+    const txt = $('#ld-text'), bar = $('#ld-bar');
+    $('#ld-tip').textContent = pick(['ヒント：ナンプレは数字を使ったパズルです', 'ヒント：困ったときはヒントを購入しましょう', 'ヒント：このロード画面は演出です', 'ヒント：数字は1〜9を使います']);
+    bar.style.transition = 'none'; bar.style.width = '0%'; void bar.offsetWidth;
+    bar.style.transition = `width ${Math.round(ms * .7)}ms ease-out`; bar.style.width = '99%';
+    for (const t of texts) { txt.textContent = t; await wait(ms / texts.length); }
+    bar.style.transition = 'width .2s'; bar.style.width = '100%';
+    await wait(260);
+  }
+};
+
+setInterval(() => { Game.updateStatus(); Annoy.tick(); }, 500);
+})();
+</script>
+</body>
+</html>
